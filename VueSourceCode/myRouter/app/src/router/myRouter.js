@@ -30,9 +30,14 @@ MyRouter.prototype = {
       // 初始化路由的状态
       if(!location.hash) location.hash = '/';
       // 初始化history的状态
-      window.addEventListener('load',() => {
-        this.history.current = location.hash.slice(1)
-      });
+      this.history.current = location.hash.slice(1)
+      /* 
+        用load会比下面的beforeCreate慢一点，拿不到current的值所以我们不用
+        load直接给就可以
+      */
+      // window.addEventListener('load',() => {
+      //   this.history.current = location.hash.slice(1)
+      // });
       // 当hash改变的时候改变history
       window.addEventListener('hashchange',() => {
         this.history.current = location.hash.slice(1)
@@ -41,13 +46,21 @@ MyRouter.prototype = {
       // 初始化路由的状态
       if(!location.pathname) location.pathname = '/';
       // 初始化history状态
-      window.addEventListener('load',() => {
-        this.history.current = location.pathname
-      });
+      this.history.current = location.pathname
+      // window.addEventListener('load',() => {
+      //   this.history.current = location.pathname
+      // });
       // 当pathname改变的时候改变history
       window.addEventListener('popstate',() => {
         this.history.current = location.pathname
       });
+    }
+  },
+  push(path){
+    if(this.mode === 'hash'){
+      location.hash = '#' + path
+    }else  if(this.mode === 'history'){
+      location.pathname = path
     }
   }
 };
@@ -66,9 +79,9 @@ MyRouter.install = function(Vue){
         this._root = this;
         this._router = this.$options.router
         // 深度监听
-        console.log(this._router.history)
+        // console.log(this._router.history)
         Vue.util.defineReactive(this,'xxx',this._router.history)
-        console.log(this._router.history.current)
+        // console.log(this._router.history.current)
       }else { // 不是根组件
         // console.log(this)
         if(this.$parent){
@@ -78,7 +91,7 @@ MyRouter.install = function(Vue){
       }
       Object.defineProperty(this,'$route',{
         get:() => {
-          console.log(this._router.history.current)
+          // console.log(this._router.history.current)
           return {
             current:this._router.history.current
           }
@@ -91,6 +104,37 @@ MyRouter.install = function(Vue){
       });
     }
   })
-
+  // vue自带组件
+  Vue.component('router-view',{ // router-view
+    render(h){
+      const {routeMap,history:{current}} = this._self.$router
+      return h(
+        routeMap[current]
+      )
+    }
+  });
+  // router-link
+  Vue.component('router-link',{
+    props:['to','tag'],
+    methods: {
+      click(ev,mode){
+        if(mode === 'hash'){
+          location.hash = ev.target.getAttribute('herf').split('#')[1]
+        }else if(mode === 'history'){
+          location.pathname = ev.target.getAttribute('herf')
+        }
+      }
+    },
+    // jsx语法
+    render(){
+      const {mode} = this._self.$router
+      const {to,tag} = this
+      console.log(this)
+      if(tag){
+        return <tag on-click={(ev) =>{this.click(ev,mode)}} herf={mode === 'hash'?`#${to}`:`${to}`}>{this.$slots.default}</tag>
+      }
+      return <a href={mode === 'hash'?`#${to}`:`${to}`}>{this.$slots.default}</a>
+    }
+  })
 };
 export default MyRouter
