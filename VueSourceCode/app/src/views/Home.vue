@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <router-link :to="{path:'/About',query:{name:'haha'}}" tag="button">去about</router-link>
+    <router-link :to="{path:'/about',query:{name:'haha'}}" tag="button">去about</router-link>
     <router-link :to="{name:'Public',params:{age:19}}" tag="button">去公共页</router-link>
     <router-link :to="{path:'p1/1'}">去P1页</router-link>
     <hr>

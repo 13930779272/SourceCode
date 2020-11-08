@@ -7,7 +7,10 @@
 
 <script>
   export default {
-    props:['age']
+    props:['age'],
+    created() {
+      console.log(this.$route)
+    },
   }
 </script>
 
